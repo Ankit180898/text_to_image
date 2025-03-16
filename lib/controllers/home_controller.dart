@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:text_to_image/models/history_item_model.dart';
@@ -60,7 +61,7 @@ Future<void> generateImage() async {
       errorMessage.value = '';
 
     try {
-      final apiToken = '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'; // Replace with your API token
+      final apiToken = dotenv.env['API_KEY']; // Replace with your API token
       final modelEndpoint = getModelEndpoint(selectedModel);
 
       final response = await http
