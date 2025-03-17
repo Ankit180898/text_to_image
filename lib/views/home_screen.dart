@@ -6,7 +6,6 @@ import 'package:text_to_image/views/widgets/action_button.dart';
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
 
-
   final controller = Get.put(HomeController());
 
   @override
@@ -46,8 +45,8 @@ class HomeScreen extends StatelessWidget {
                 ),
 
                 // Main content
-                Obx(()=>
-                   SliverToBoxAdapter(
+                Obx(
+                  () => SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -81,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(height: 20),
-                  
+
                           // Style presets
                           Text('Style', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           SizedBox(height: 10),
@@ -91,25 +90,32 @@ class HomeScreen extends StatelessWidget {
                               scrollDirection: Axis.horizontal,
                               itemCount: controller.stylePresets.length,
                               itemBuilder: (context, index) {
-                                var a = controller.stylePresets[index];
+                                var style = controller.stylePresets[index];
                                 return Padding(
                                   padding: EdgeInsets.only(right: 8),
-                                  child: FilterChip(
-                                    label: Text(a),
-                                    selected: index == 0,
-                                    onSelected: (bool selected) {},
-                                    backgroundColor: Color(0xFF1E1F2E),
-                                    selectedColor: Color(0xFF6C39FF),
-                                    checkmarkColor: Colors.white,
-                                    labelStyle: TextStyle(color: Colors.white),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                  child: Obx(
+                                    () => ChoiceChip(
+                                      label: Text(style),
+                                      selected: controller.selectedStyle.value == style,
+                                      onSelected: (bool selected) {
+                                        if (selected) {
+                                          controller.selectedStyle.value = style;
+                                        }
+                                      },
+                                      backgroundColor: Color(0xFF1E1F2E),
+                                      selectedColor: Color(0xFF6C39FF),
+                                      checkmarkColor: Colors.white,
+                                      labelStyle: TextStyle(color: Colors.white),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                    ),
                                   ),
                                 );
                               },
                             ),
                           ),
+
                           SizedBox(height: 20),
-                  
+
                           // Aspect ratio
                           Text('Aspect Ratio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           SizedBox(height: 10),
@@ -120,7 +126,10 @@ class HomeScreen extends StatelessWidget {
                                   onTap: () {
                                     controller.selectedAspectRatio.value = 0;
                                   },
-                                  child: AspectRatioOption(title: '1:1', isSelected: controller.selectedAspectRatio == 0),
+                                  child: AspectRatioOption(
+                                    title: '1:1',
+                                    isSelected: controller.selectedAspectRatio == 0,
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 8),
@@ -150,7 +159,7 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                           SizedBox(height: 20),
-                  
+
                           // Generate button
                           SizedBox(
                             width: double.infinity,
@@ -173,7 +182,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(height: 20),
-                  
+
                           // Error message
                           if (controller.errorMessage.isNotEmpty)
                             Container(
@@ -185,7 +194,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                               child: Text(controller.errorMessage.value, style: TextStyle(color: Colors.red)),
                             ),
-                  
+
                           // Recent prompts
                           if (controller.recentPrompts.isNotEmpty)
                             Padding(
@@ -198,7 +207,8 @@ class HomeScreen extends StatelessWidget {
                                   ListView.builder(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
-                                    itemCount: controller.recentPrompts.length > 3 ? 3 : controller.recentPrompts.length,
+                                    itemCount:
+                                        controller.recentPrompts.length > 3 ? 3 : controller.recentPrompts.length,
                                     itemBuilder: (context, index) {
                                       return GestureDetector(
                                         onTap: () {
@@ -232,7 +242,7 @@ class HomeScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                  
+
                           // Generated image
                           if (controller.imageData != null)
                             Column(
@@ -269,16 +279,17 @@ class HomeScreen extends StatelessWidget {
                                     ActionButton(
                                       icon: Icons.save_alt,
                                       label: 'Save',
-                                      onTap: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Image saved to gallery'),
-                                            backgroundColor: Color(0xFF6C39FF),
-                                          ),
-                                        );
+                                      onTap: () async {
+                                        await controller.saveImageToGallery(controller.imageData!);
                                       },
                                     ),
-                                    ActionButton(icon: Icons.share, label: 'Share', onTap: () {}),
+                                    ActionButton(
+                                      icon: Icons.share,
+                                      label: 'Share',
+                                      onTap: () async {
+                                        await controller.shareImage(controller.imageData!);
+                                      },
+                                    ),
                                   ],
                                 ),
                                 SizedBox(height: 30),
