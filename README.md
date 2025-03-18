@@ -1,5 +1,7 @@
 # Text to Image Flutter App
 
+![Portolio landing page](https://github.com/user-attachments/assets/f05017ca-ad0c-46e2-8e5a-6fbd404756ac)
+
 A Flutter application that converts text descriptions into images using AI. This app features a modern dark theme and uses GetX for state management.
 
 ## 🚀 Features
