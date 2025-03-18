@@ -1,0 +1,4 @@
+-keep class io.flutter.** { *; }
+-keep class com.example.text_to_image.** { *; }
+-keep class com.google.android.play.** { *; }
+-dontwarn com.google.android.play.**

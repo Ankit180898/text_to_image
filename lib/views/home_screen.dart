@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             // Background gradient
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
                   floating: false,
                   pinned: true,
                   elevation: 0,
-                  flexibleSpace: FlexibleSpaceBar(
+                  flexibleSpace: const FlexibleSpaceBar(
                     title: Text(
                       'Vision AI',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 0.5),
@@ -48,42 +48,77 @@ class HomeScreen extends StatelessWidget {
                 Obx(
                   () => SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Prompt input
-                          Text('Create', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 6),
-                          Text(
+                          const Text('Create', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 6),
+                          const Text(
                             'Type your prompt to generate an image',
                             style: TextStyle(fontSize: 14, color: Colors.grey),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           Container(
                             decoration: BoxDecoration(
-                              color: Color(0xFF1E1F2E),
+                              color: const Color(0xFF1E1F2E),
                               borderRadius: BorderRadius.circular(16),
-                              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+                              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
                             ),
                             child: TextField(
                               controller: controller.textController,
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                               maxLines: 3,
                               decoration: InputDecoration(
                                 hintText: 'Type your prompt here...',
-                                hintStyle: TextStyle(color: Colors.grey),
+                                hintStyle: const TextStyle(color: Colors.grey),
                                 border: InputBorder.none,
-                                contentPadding: EdgeInsets.all(16),
-                                suffixIcon: IconButton(icon: Icon(Icons.mic, color: Colors.grey), onPressed: () {}),
+                                contentPadding: const EdgeInsets.all(16),
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.mic, color: Colors.grey), 
+                                  onPressed: () {}
+                                ),
                               ),
                             ),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
+                          
+                          // Model selection
+                          const Text('Model', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1F2E),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                value: controller.selectedModel.value,
+                                dropdownColor: const Color(0xFF1E1F2E),
+                                style: const TextStyle(color: Colors.white),
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                                items: controller.models.map((String model) {
+                                  return DropdownMenuItem<String>(
+                                    value: model,
+                                    child: Text(model),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    controller.selectedModel.value = newValue;
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
 
                           // Style presets
-                          Text('Style', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 10),
+                          const Text('Style', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
                           SizedBox(
                             height: 40,
                             child: ListView.builder(
@@ -92,7 +127,7 @@ class HomeScreen extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 var style = controller.stylePresets[index];
                                 return Padding(
-                                  padding: EdgeInsets.only(right: 8),
+                                  padding: const EdgeInsets.only(right: 8),
                                   child: Obx(
                                     () => ChoiceChip(
                                       label: Text(style),
@@ -102,10 +137,10 @@ class HomeScreen extends StatelessWidget {
                                           controller.selectedStyle.value = style;
                                         }
                                       },
-                                      backgroundColor: Color(0xFF1E1F2E),
-                                      selectedColor: Color(0xFF6C39FF),
+                                      backgroundColor: const Color(0xFF1E1F2E),
+                                      selectedColor: const Color(0xFF6C39FF),
                                       checkmarkColor: Colors.white,
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle: const TextStyle(color: Colors.white),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                     ),
                                   ),
@@ -114,11 +149,11 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
 
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
                           // Aspect ratio
-                          Text('Aspect Ratio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 10),
+                          const Text('Aspect Ratio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
@@ -128,11 +163,11 @@ class HomeScreen extends StatelessWidget {
                                   },
                                   child: AspectRatioOption(
                                     title: '1:1',
-                                    isSelected: controller.selectedAspectRatio == 0,
+                                    isSelected: controller.selectedAspectRatio.value == 0,
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
@@ -144,7 +179,7 @@ class HomeScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
@@ -158,7 +193,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
                           // Generate button
                           SizedBox(
@@ -168,45 +203,45 @@ class HomeScreen extends StatelessWidget {
                               onPressed: controller.isLoading.value ? null : controller.generateImage,
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,
-                                backgroundColor: Color(0xFF6C39FF),
+                                backgroundColor: const Color(0xFF6C39FF),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
                               child:
                                   controller.isLoading.value
-                                      ? CircularProgressIndicator(color: Colors.white)
-                                      : Text(
+                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      : const Text(
                                         'Generate Image',
                                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                             ),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
                           // Error message
                           if (controller.errorMessage.isNotEmpty)
                             Container(
                               width: double.infinity,
-                              padding: EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(controller.errorMessage.value, style: TextStyle(color: Colors.red)),
+                              child: Text(controller.errorMessage.value, style: const TextStyle(color: Colors.red)),
                             ),
 
                           // Recent prompts
                           if (controller.recentPrompts.isNotEmpty)
                             Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
+                              padding: const EdgeInsets.symmetric(vertical: 20),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Recent Prompts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                  SizedBox(height: 10),
+                                  const Text('Recent Prompts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 10),
                                   ListView.builder(
                                     shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
+                                    physics: const NeverScrollableScrollPhysics(),
                                     itemCount:
                                         controller.recentPrompts.length > 3 ? 3 : controller.recentPrompts.length,
                                     itemBuilder: (context, index) {
@@ -215,16 +250,16 @@ class HomeScreen extends StatelessWidget {
                                           controller.textController.text = controller.recentPrompts[index];
                                         },
                                         child: Container(
-                                          margin: EdgeInsets.only(bottom: 8),
-                                          padding: EdgeInsets.all(12),
+                                          margin: const EdgeInsets.only(bottom: 8),
+                                          padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: Color(0xFF1E1F2E),
+                                            color: const Color(0xFF1E1F2E),
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           child: Row(
                                             children: [
-                                              Icon(Icons.history, color: Colors.grey),
-                                              SizedBox(width: 8),
+                                              const Icon(Icons.history, color: Colors.grey),
+                                              const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
                                                   controller.recentPrompts[index],
@@ -232,7 +267,7 @@ class HomeScreen extends StatelessWidget {
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                                              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                                             ],
                                           ),
                                         ),
@@ -248,8 +283,8 @@ class HomeScreen extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Generated Image', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 12),
+                                const Text('Generated Image', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 12),
                                 Container(
                                   width: double.infinity,
                                   decoration: BoxDecoration(
@@ -258,7 +293,7 @@ class HomeScreen extends StatelessWidget {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.3),
                                         blurRadius: 10,
-                                        offset: Offset(0, 5),
+                                        offset: const Offset(0, 5),
                                       ),
                                     ],
                                   ),
@@ -267,7 +302,7 @@ class HomeScreen extends StatelessWidget {
                                     child: Image.memory(controller.imageData!, fit: BoxFit.cover),
                                   ),
                                 ),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
@@ -292,7 +327,7 @@ class HomeScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 30),
+                                const SizedBox(height: 30),
                               ],
                             ),
                         ],
@@ -318,9 +353,9 @@ class AspectRatioOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: isSelected ? Color(0xFF6C39FF) : Color(0xFF1E1F2E),
+        color: isSelected ? const Color(0xFF6C39FF) : const Color(0xFF1E1F2E),
         borderRadius: BorderRadius.circular(12),
         border: isSelected ? null : Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
