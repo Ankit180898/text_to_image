@@ -36,19 +36,22 @@ class SettingsScreen extends StatelessWidget {
                 return Container(
                   margin: EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(color: Color(0xFF1E1F2E), borderRadius: BorderRadius.circular(16)),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    leading: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF6C39FF).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Coming Soon!"))),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      leading: Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF6C39FF).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(item['icon'], color: Color(0xFF6C39FF)),
                       ),
-                      child: Icon(item['icon'], color: Color(0xFF6C39FF)),
+                      title: Text(item['title']),
+                      subtitle: Text(item['subtitle'], style: TextStyle(color: Colors.grey)),
+                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
                     ),
-                    title: Text(item['title']),
-                    subtitle: Text(item['subtitle'], style: TextStyle(color: Colors.grey)),
-                    trailing: Icon(Icons.chevron_right, color: Colors.grey),
                   ),
                 );
               }, childCount: settingItems.length),
