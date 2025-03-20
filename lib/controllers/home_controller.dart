@@ -55,14 +55,14 @@ class HomeController extends GetxController {
   String getModelEndpoint(String model) {
     switch (model) {
       case 'stable-diffusion-v2-1':
-        return 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
+        return 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-1';
       case 'sdxl':
-        return 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0';
+        return 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0';
       case 'dalle-mini':
-        return 'https://api-inference.huggingface.co/models/dalle-mini/dalle-mini';
+        return 'https://router.huggingface.co/hf-inference/models/dalle-mini/dalle-mini';
       case 'stable-diffusion-v1-4':
       default:
-        return 'https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4';
+        return 'https://router.huggingface.co/hf-inference/models/CompVis/stable-diffusion-v1-4';
     }
   }
 

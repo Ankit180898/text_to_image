@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:text_to_image/controllers/home_controller.dart';
@@ -342,6 +343,134 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+  void showImageBottomSheet(BuildContext context, ImageController controller) {
+  showCupertinoModalBottomSheet(
+    context: context,
+    backgroundColor: CupertinoColors.systemBackground.darkColor,
+    elevation: 10,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Generated Image',
+                  style: TextStyle(
+                    fontSize: 20, 
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.xmark_circle_fill,
+                    color: CupertinoColors.systemGrey,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withOpacity(0.2),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: controller.imageData != null
+                      ? Image.memory(controller.imageData!, fit: BoxFit.cover)
+                      : const CupertinoActivityIndicator(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildCupertinoActionButton(
+                  CupertinoIcons.refresh,
+                  'Regenerate',
+                  controller.generateImage,
+                ),
+                _buildCupertinoActionButton(
+                  CupertinoIcons.arrow_down_circle,
+                  'Save',
+                  () async {
+                    await controller.saveImageToGallery(controller.imageData!);
+                    if (context.mounted) {
+                      _showSuccessToast(context, 'Image saved to gallery');
+                    }
+                  },
+                ),
+                _buildCupertinoActionButton(
+                  CupertinoIcons.share,
+                  'Share',
+                  () async {
+                    await controller.shareImage(controller.imageData!);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildCupertinoActionButton(IconData icon, String label, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemIndigo.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            icon,
+            color: CupertinoColors.white,
+            size: 30,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            color: CupertinoColors.white,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
 }
 
 class AspectRatioOption extends StatelessWidget {
