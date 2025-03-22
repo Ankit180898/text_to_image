@@ -36,11 +36,16 @@ dependencies:
   get: ^4.7.2
   google_fonts: null
   http: null
+  image_cropper: ^9.0.0
+  modal_bottom_sheet: ^3.0.0
   path_provider: ^2.1.5
   permission_handler: ^11.4.0
   photo_manager: ^3.6.4
+  purchases_flutter: ^8.6.1
   share_plus: ^10.1.4
+  shared_preferences: ^2.5.2
   shorebird_code_push: ^2.0.3
+  speech_to_text: ^7.0.0
   sqflite: ^2.4.2
 
 dev_dependencies:

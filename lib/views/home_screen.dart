@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:text_to_image/controllers/home_controller.dart';
-import 'package:text_to_image/views/widgets/action_button.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
@@ -31,10 +30,11 @@ class HomeScreen extends StatelessWidget {
               slivers: [
                 // App bar
                 SliverAppBar(
-                  backgroundColor: Colors.black54,
-                  expandedHeight: 120,
+                  backgroundColor: Colors.transparent, // Changed to transparent
+                  expandedHeight: 40,
                   floating: false,
                   pinned: true,
+                  centerTitle: true,
                   elevation: 0,
                   flexibleSpace: const FlexibleSpaceBar(
                     title: Text(
@@ -76,15 +76,26 @@ class HomeScreen extends StatelessWidget {
                                 hintStyle: const TextStyle(color: Colors.grey),
                                 border: InputBorder.none,
                                 contentPadding: const EdgeInsets.all(16),
-                                suffixIcon: IconButton(
-                                  icon: const Icon(Icons.mic, color: Colors.grey), 
-                                  onPressed: () {}
+                                suffixIcon: Obx(
+                                  () => IconButton(
+                                    icon: Icon(
+                                      controller.isListening.value ? Icons.mic_off : Icons.mic,
+                                      color: controller.isListening.value ? Colors.red : Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      if (controller.isListening.value) {
+                                        controller.stopListening();
+                                      } else {
+                                        controller.startListening();
+                                      }
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Model selection
                           const Text('Model', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 10),
@@ -101,12 +112,10 @@ class HomeScreen extends StatelessWidget {
                                 dropdownColor: const Color(0xFF1E1F2E),
                                 style: const TextStyle(color: Colors.white),
                                 icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                                items: controller.models.map((String model) {
-                                  return DropdownMenuItem<String>(
-                                    value: model,
-                                    child: Text(model),
-                                  );
-                                }).toList(),
+                                items:
+                                    controller.models.map((String model) {
+                                      return DropdownMenuItem<String>(value: model, child: Text(model));
+                                    }).toList(),
                                 onChanged: (String? newValue) {
                                   if (newValue != null) {
                                     controller.selectedModel.value = newValue;
@@ -195,13 +204,45 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 20),
-
+                          // Quality slider
+                          const Text('Quality', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          Obx(
+                            () => Slider(
+                              value: controller.qualityValue.value,
+                              min: 0,
+                              max: 100,
+                              divisions: 4,
+                              label: controller.qualityValue.value.round().toString(),
+                              onChanged: (value) {
+                                controller.qualityValue.value = value;
+                              },
+                              activeColor: const Color(0xFF6C39FF), // Added for consistent color scheme
+                              inactiveColor: Colors.grey.withOpacity(0.3), // Improved inactive track color
+                            ),
+                          ),
+                          Obx(
+                            () => Text(
+                              'Quality Level: ${controller.qualityValue.value.round()}',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
                           // Generate button
                           SizedBox(
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: controller.isLoading.value ? null : controller.generateImage,
+                              onPressed:
+                                  controller.isLoading.value
+                                      ? null
+                                      : () async {
+                                        await controller.generateImage();
+                                        // Show image in CupertinoActionSheet if generation was successful
+                                        if (controller.imageData != null) {
+                                          _showImageSheet(context);
+                                        }
+                                      },
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,
                                 backgroundColor: const Color(0xFF6C39FF),
@@ -210,7 +251,21 @@ class HomeScreen extends StatelessWidget {
                               ),
                               child:
                                   controller.isLoading.value
-                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      ? Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Generating...',
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      )
                                       : const Text(
                                         'Generate Image',
                                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -238,7 +293,10 @@ class HomeScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Recent Prompts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  const Text(
+                                    'Recent Prompts',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
                                   const SizedBox(height: 10),
                                   ListView.builder(
                                     shrinkWrap: true,
@@ -266,6 +324,7 @@ class HomeScreen extends StatelessWidget {
                                                   controller.recentPrompts[index],
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(color: Colors.white), // Added text color
                                                 ),
                                               ),
                                               const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
@@ -278,59 +337,7 @@ class HomeScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-
-                          // Generated image
-                          if (controller.imageData != null)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Generated Image', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 12),
-                                Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 5),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Image.memory(controller.imageData!, fit: BoxFit.cover),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    ActionButton(
-                                      icon: Icons.refresh,
-                                      label: 'Regenerate',
-                                      onTap: controller.generateImage,
-                                    ),
-                                    ActionButton(
-                                      icon: Icons.save_alt,
-                                      label: 'Save',
-                                      onTap: () async {
-                                        await controller.saveImageToGallery(controller.imageData!);
-                                      },
-                                    ),
-                                    ActionButton(
-                                      icon: Icons.share,
-                                      label: 'Share',
-                                      onTap: () async {
-                                        await controller.shareImage(controller.imageData!);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 30),
-                              ],
-                            ),
+                          const SizedBox(height: 30),
                         ],
                       ),
                     ),
@@ -338,139 +345,147 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+
+            // Voice Recognition Overlay - Fixed
+            Obx(() {
+              if (controller.isListening.value) {
+                return Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.7),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.mic, color: Colors.red, size: 60),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Listening...',
+                            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1F2E),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              controller.recognizedText.value.isEmpty
+                                  ? 'Say something...'
+                                  : controller.recognizedText.value,
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          ElevatedButton(
+                            onPressed: () => controller.stopListening(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(16),
+                            ),
+                            child: const Icon(Icons.close, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            }),
           ],
         ),
       ),
     );
   }
-  void showImageBottomSheet(BuildContext context, ImageController controller) {
-  showCupertinoModalBottomSheet(
-    context: context,
-    backgroundColor: CupertinoColors.systemBackground.darkColor,
-    elevation: 10,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) => SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Generated Image',
-                  style: TextStyle(
-                    fontSize: 20, 
-                    fontWeight: FontWeight.bold,
-                    color: CupertinoColors.white,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.xmark_circle_fill,
-                    color: CupertinoColors.systemGrey,
-                    size: 24,
-                  ),
-                ),
-              ],
+
+  // Method to show the generated image in a CupertinoActionSheet
+  void _showImageSheet(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder:
+          (BuildContext context) => CupertinoActionSheet(
+            title: const Text(
+              'Generated Image',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6C39FF)),
             ),
-            const SizedBox(height: 20),
-            AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                decoration: BoxDecoration(
+            message: Column(
+              children: [
+                ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.2),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 5),
+                  child: Image.memory(
+                    controller.imageData!,
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width * 0.9,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.refresh,
+                      label: 'Regenerate',
+                      onTap: () {
+                        Navigator.pop(context);
+                        controller.generateImage();
+                      },
+                    ),
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.save_alt,
+                      label: 'Save',
+                      onTap: () async {
+                        await controller.saveImageToGallery(controller.imageData!);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(const SnackBar(content: Text('Image saved to gallery')));
+                        }
+                      },
+                    ),
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.share,
+                      label: 'Share',
+                      onTap: () async {
+                        await controller.shareImage(controller.imageData!);
+                      },
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: controller.imageData != null
-                      ? Image.memory(controller.imageData!, fit: BoxFit.cover)
-                      : const CupertinoActivityIndicator(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildCupertinoActionButton(
-                  CupertinoIcons.refresh,
-                  'Regenerate',
-                  controller.generateImage,
-                ),
-                _buildCupertinoActionButton(
-                  CupertinoIcons.arrow_down_circle,
-                  'Save',
-                  () async {
-                    await controller.saveImageToGallery(controller.imageData!);
-                    if (context.mounted) {
-                      _showSuccessToast(context, 'Image saved to gallery');
-                    }
-                  },
-                ),
-                _buildCupertinoActionButton(
-                  CupertinoIcons.share,
-                  'Share',
-                  () async {
-                    await controller.shareImage(controller.imageData!);
-                  },
-                ),
               ],
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+          ),
+    );
+  }
 
-Widget _buildCupertinoActionButton(IconData icon, String label, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Column(
+  // Helper method to build action buttons for the CupertinoActionSheet
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: CupertinoColors.systemIndigo.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(
-            icon,
-            color: CupertinoColors.white,
-            size: 30,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: CupertinoColors.white,
-            fontSize: 14,
-          ),
-        ),
+        IconButton(onPressed: onTap, icon: Icon(icon), color: const Color(0xFF6C39FF), iconSize: 28),
+        Text(label, style: const TextStyle(fontSize: 12)),
       ],
-    ),
-  );
-}
-
-
+    );
+  }
 }
 
 class AspectRatioOption extends StatelessWidget {

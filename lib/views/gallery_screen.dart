@@ -102,7 +102,7 @@ class GalleryScreen extends StatelessWidget {
     );
   }
 
-  void _showImageDetailDialog(BuildContext context, var imageData) { 
+ void _showImageDetailDialog(BuildContext context, var imageData) { 
   Get.dialog(
     Dialog(
       backgroundColor: Colors.transparent,

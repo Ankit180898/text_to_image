@@ -54,6 +54,9 @@
 	<string>We need access to your photo library to save images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need permission to save images to your gallery.</string>
-
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone for speech recognition.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need access to speech recognition to convert your speech to text.</string>
 </dict>
 </plist>
