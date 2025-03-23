@@ -193,9 +193,8 @@ class SubscriptionService extends GetxController {
         );
 
       case SubscriptionTier.free:
-      default:
         return SubscriptionFeatures(
-          imagesPerDay: 3,
+          imagesPerDay: 100,
           availableModels: ['stable-diffusion-v1-4'],
           availableStyles: ['No Style', 'Photorealistic'],
           highQualityEnabled: false,
@@ -272,7 +271,6 @@ class SubscriptionService extends GetxController {
       case SubscriptionTier.basic:
         return "Basic";
       case SubscriptionTier.free:
-      default:
         return "Free";
     }
   }

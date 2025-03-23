@@ -32,8 +32,16 @@ class HomeController extends GetxController {
   // Get the subscription service
   final subscriptionService = Get.put(SubscriptionService());
 
-  final List<String> models = ['stable-diffusion-v1-4', 'stable-diffusion-v2-1', 'sdxl', 'dalle-mini'];
-  RxDouble qualityValue = 50.0.obs; // Default quality level
+final List<String> models = [
+  'stable-diffusion-v1-4', 
+  'stable-diffusion-v2-1', 
+  'sdxl', 
+  'dalle-mini',
+  'dreamlike-diffusion',
+  'openjourney'
+]; 
+
+ RxDouble qualityValue = 50.0.obs; // Default quality level
 
   final stt.SpeechToText speech = stt.SpeechToText();
   RxBool isListening = false.obs;
@@ -117,20 +125,23 @@ class HomeController extends GetxController {
       selectedAspectRatio.value = 0; // 1:1
     }
   }
-
-  String getModelEndpoint(String model) {
-    switch (model) {
-      case 'stable-diffusion-v2-1':
-        return 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-1';
-      case 'sdxl':
-        return 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0';
-      case 'dalle-mini':
-        return 'https://router.huggingface.co/hf-inference/models/dalle-mini/dalle-mini';
-      case 'stable-diffusion-v1-4':
-      default:
-        return 'https://router.huggingface.co/hf-inference/models/CompVis/stable-diffusion-v1-4';
-    }
+String getModelEndpoint(String model) {
+  switch (model) {
+    case 'stable-diffusion-v2-1':
+      return 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-1';
+    case 'sdxl':
+      return 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0';
+    case 'dalle-mini':
+      return 'https://router.huggingface.co/hf-inference/models/dalle-mini/dalle-mini';
+    case 'dreamlike-diffusion':
+      return 'https://router.huggingface.co/hf-inference/models/dreamlike-art/dreamlike-diffusion-1.0';
+    case 'openjourney':
+      return 'https://router.huggingface.co/hf-inference/models/prompthero/openjourney';
+    case 'stable-diffusion-v1-4':
+    default:
+      return 'https://router.huggingface.co/hf-inference/models/CompVis/stable-diffusion-v1-4';
   }
+}
 
   Future<void> requestPermissions() async {
     // For Android 13+ (API 33+)
@@ -166,34 +177,59 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> generateImage() async {
-    if (textController.text.isEmpty) {
-      errorMessage.value = 'Please enter a prompt';
-      return;
+Future<void> generateImage() async {
+  if (textController.text.isEmpty) {
+    errorMessage.value = 'Please enter a prompt';
+    return;
+  }
+
+  // Check if user has reached daily limit
+  if (!subscriptionService.canGenerateImage()) {
+    errorMessage.value = 'You\'ve reached your daily limit of images. Upgrade your plan for more!';
+    _showSubscriptionDialog();
+    return;
+  }
+
+  isLoading.value = true;
+  imageData = null;
+  errorMessage.value = '';
+
+  // List of models to try if the selected one fails
+  List<String> modelsToTry = [selectedModel.value];
+  
+  // Add fallback models that aren't the already selected one
+  List<String> fallbackModels = ['stable-diffusion-v1-4', 'dalle-mini', 'dreamlike-diffusion'];
+  for (var model in fallbackModels) {
+    if (!modelsToTry.contains(model)) {
+      modelsToTry.add(model);
     }
+  }
 
-    // Check if user has reached daily limit
-    if (!subscriptionService.canGenerateImage()) {
-      errorMessage.value = 'You\'ve reached your daily limit of images. Upgrade your plan for more!';
-      _showSubscriptionDialog();
-      return;
-    }
+  int attemptCount = 0;
+  bool success = false;
 
-    isLoading.value = true;
-    imageData = null;
-    errorMessage.value = '';
-
+  while (!success && attemptCount < modelsToTry.length) {
+    String currentModel = modelsToTry[attemptCount];
+    attemptCount++;
+    
     try {
       final apiToken = dotenv.env['API_KEY'];
-      final modelEndpoint = getModelEndpoint(selectedModel.value);
+      final modelEndpoint = getModelEndpoint(currentModel);
 
-      // Get quality parameters based on subscription
+      // Optimize quality parameters for faster generation
+      // Reduce size and steps for faster generation
       final baseWidth = 512;
       final baseHeight = 512;
-      final inferenceSteps =
-          highQualityEnabled.value
-              ? (qualityValue > 70 ? 50 : (qualityValue > 40 ? 30 : 20))
-              : 20; // Limit steps for free/basic
+      
+      // Use more conservative settings to improve speed
+      final inferenceSteps = highQualityEnabled.value
+          ? (qualityValue.value > 70 ? 30 : (qualityValue.value > 40 ? 20 : 15))
+          : 15;
+
+      // Calculate dynamic timeout based on model and quality settings
+      int timeoutSeconds = 30;
+      if (currentModel == 'sdxl') timeoutSeconds = 45;
+      if (inferenceSteps > 20) timeoutSeconds += 15;
 
       final response = await http
           .post(
@@ -204,9 +240,9 @@ class HomeController extends GetxController {
               "parameters": {
                 "style": selectedStyle.value != 'No Style' ? selectedStyle.value.toLowerCase() : null,
                 "aspect_ratio": getAspectRatioValue(),
-                // Adjust quality based on subscription
-                "width": highQualityEnabled.value ? (baseWidth + (qualityValue / 100 * 256)).round() : baseWidth,
-                "height": highQualityEnabled.value ? (baseHeight + (qualityValue / 100 * 256)).round() : baseHeight,
+                // More conservative sizing for better performance
+                "width": highQualityEnabled.value ? (baseWidth + (qualityValue.value / 100 * 128)).round() : baseWidth,
+                "height": highQualityEnabled.value ? (baseHeight + (qualityValue.value / 100 * 128)).round() : baseHeight,
                 "num_inference_steps": inferenceSteps,
                 "guidance_scale": 7.5,
                 "seed": DateTime.now().millisecondsSinceEpoch,
@@ -214,21 +250,34 @@ class HomeController extends GetxController {
             }),
           )
           .timeout(
-            const Duration(seconds: 60),
+            Duration(seconds: timeoutSeconds),
             onTimeout: () {
               throw Exception(
-                'Request timed out. The server may be busy or the image generation is taking longer than expected.',
+                'Request timed out. Trying alternative model...',
               );
             },
           );
 
       if (response.statusCode == 200) {
         imageData = response.bodyBytes;
+        success = true;
+
+        // If we succeeded with a fallback model, update the user
+        if (currentModel != selectedModel.value) {
+          Get.snackbar(
+            'Model Switch',
+            'Used $currentModel instead of ${selectedModel.value} for faster generation',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.blue,
+            colorText: Colors.white,
+            margin: const EdgeInsets.all(8),
+            borderRadius: 8,
+            duration: const Duration(seconds: 3),
+          );
+        }
 
         // Increment the image count for today
         await subscriptionService.incrementImageCount();
-
-        isLoading.value = false;
 
         // Add to history
         history.add(HistoryItem(prompt: textController.text, imageData: response.bodyBytes, timestamp: DateTime.now()));
@@ -242,17 +291,32 @@ class HomeController extends GetxController {
             recentPrompts.removeLast();
           }
         }
+      } else if (response.statusCode == 503) {
+        // Server unavailable - try next model
+        debugPrint('Model $currentModel unavailable (503). Trying next model...');
+        // Don't set error message yet, we'll try other models
       } else {
-        isLoading.value = false;
-        errorMessage.value = 'Error ${response.statusCode}: ${response.reasonPhrase}';
+        // For other error codes, log but continue to next model
+        debugPrint('Error with model $currentModel: ${response.statusCode}: ${response.reasonPhrase}');
         debugPrint('Error response: ${response.body}');
       }
     } catch (e) {
-      isLoading.value = false;
-      errorMessage.value = 'Error: ${e.toString()}';
-      debugPrint('Exception caught: $e');
+      debugPrint('Exception with model $currentModel: $e');
+      // Continue to next model
+    }
+    
+    // Add exponential backoff between retries
+    if (!success && attemptCount < modelsToTry.length) {
+      await Future.delayed(Duration(milliseconds: 200 * attemptCount));
     }
   }
+
+  isLoading.value = false;
+  
+  if (!success) {
+    errorMessage.value = 'Failed to generate image after trying multiple models. Please try again later.';
+  }
+}
 
   String getAspectRatioValue() {
     switch (selectedAspectRatio.value) {

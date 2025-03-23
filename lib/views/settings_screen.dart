@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:text_to_image/controllers/settings_controller.dart';
+import 'package:text_to_image/views/subscription_screen.dart';
+import 'package:url_launcher/url_launcher.dart' as url;
 
 class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key});
@@ -160,6 +162,49 @@ class SettingsScreen extends StatelessWidget {
                       },
                     ),
 
+                    // Add subscription settings
+                    _buildSettingItem(
+                      context: context,
+                      icon: Icons.subscriptions,
+                      title: 'Subscription',
+                      subtitle: 'Manage your subscription',
+                      onTap: () {
+                        Get.to(() => SubscriptionScreen());
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    // Made with ❤️ by Ankit
+                    GestureDetector(
+                      onTap: () {
+                        url.launch('https://ankitdev18.netlify.app/#/minified:Fh');
+                        Get.snackbar(
+                          'Ankit',
+                          'Opening my website...',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: const Color(0xFF1E1F2E),
+                          colorText: Colors.white,
+                        );
+                      },
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: const TextSpan(
+                          text: 'Made with ',
+                          style: TextStyle(color: Colors.grey),
+                          children: [
+                            TextSpan(text: '❤️', style: TextStyle(color: Colors.red)),
+                            TextSpan(text: ' by ', style: TextStyle(color: Colors.grey)),
+                            TextSpan(
+                              text: 'Ankit',
+                              style: TextStyle(
+                                color: Colors.deepPurpleAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     // Add some space at the bottom
                     const SizedBox(height: 40),
                   ]),

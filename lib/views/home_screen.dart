@@ -37,6 +37,7 @@ class HomeScreen extends StatelessWidget {
                   centerTitle: true,
                   elevation: 0,
                   flexibleSpace: const FlexibleSpaceBar(
+                    centerTitle: true,
                     title: Text(
                       'Vision AI',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 0.5),
