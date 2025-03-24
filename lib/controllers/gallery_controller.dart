@@ -5,10 +5,12 @@ import 'package:text_to_image/service/database_helper.dart';
 
 class GalleryController extends GetxController {
   RxList<ImageModel> images = <ImageModel>[].obs;
+  // Default to "All Images" collection
 
   @override
   void onInit() {
     fetchImages();
+
     super.onInit();
   }
 

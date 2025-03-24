@@ -134,7 +134,7 @@ String getModelEndpoint(String model) {
     case 'dalle-mini':
       return 'https://router.huggingface.co/hf-inference/models/dalle-mini/dalle-mini';
     case 'dreamlike-diffusion':
-      return 'https://router.huggingface.co/hf-inference/models/dreamlike-art/dreamlike-diffusion-1.0';
+      return 'https://router.huggingface.co/hf-inference/models/dalle-mini/dalle-mini';
     case 'openjourney':
       return 'https://router.huggingface.co/hf-inference/models/prompthero/openjourney';
     case 'stable-diffusion-v1-4':
